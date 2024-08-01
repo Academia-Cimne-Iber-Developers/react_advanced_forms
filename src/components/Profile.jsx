@@ -5,8 +5,48 @@ function Profile() {
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [editMode, setEditMode] = useState(false);
+    const [loadingUpdate, setLoadingUpdate] = useState(false);
+    const [errorUpdating, setErrorUpdating] = useState(false);
 
     const { token } = useAuth("state");
+
+    const doFetch = async () => {
+        setLoadingUpdate(true);
+        fetch(
+            `${import.meta.env.VITE_API_BASE_URL}users/profiles/${
+                userData.user__id
+            }/`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Token ${token}`,
+                },
+                body: JSON.stringify({
+                    first_name: "Carlos Humberto",
+                    last_name: "Santana",
+                }),
+            }
+        )
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("No se pudo actualizar el usuario");
+                }
+                return response.json();
+            })
+            .then((data) => {
+                if (data) {
+                    setUserData(data);
+                }
+            })
+            .catch(() => {
+                setErrorUpdating(true);
+            })
+            .finally(() => {
+                setLoadingUpdate(false);
+            });
+    };
 
     useEffect(() => {
         fetch(
@@ -34,6 +74,15 @@ function Profile() {
                 setLoading(false);
             });
     }, []);
+
+    function handleEditMode() {
+        setEditMode(!editMode);
+    }
+
+    function handleSubmit(event) {
+        event.preventDefault();
+        doFetch();
+    }
 
     if (loading) return <p>Cargando perfil...</p>;
     if (error) return <p>Error: {error}</p>;
@@ -81,15 +130,66 @@ function Profile() {
                                     {userData.state.name}
                                 </div>
                             </div>
+                            <button
+                                className="button is-primary"
+                                onClick={handleEditMode}
+                            >
+                                {!editMode ? "Editar" : "Salir"}
+                            </button>
                         </div>
 
-                        <div className="content">
-                            Email: {userData.email}
-                            <br />
-                            Fecha de Nacimiento: {userData.dob}
-                            <br />
-                            Biografía: {userData.bio || "No disponible"}
-                        </div>
+                        <form className="content" onSubmit={handleSubmit}>
+                            <div className="field">
+                                <label className="label">Email:</label>
+                                <div className="control">
+                                    <input
+                                        type="text"
+                                        className="input"
+                                        id="email"
+                                        name="email"
+                                        value={userData.email}
+                                        disabled={!editMode}
+                                    />
+                                </div>
+                            </div>
+                            <div className="field">
+                                <label className="label">
+                                    Fecha de Nacimiento:
+                                </label>
+                                <div className="control">
+                                    <input
+                                        type="text"
+                                        className="input"
+                                        id="dob"
+                                        name="dob"
+                                        value={userData.dob}
+                                        disabled={!editMode}
+                                    />
+                                </div>
+                            </div>
+                            <div className="field">
+                                <label className="label">Biografía:</label>
+                                <div className="control">
+                                    <textarea
+                                        className="textarea"
+                                        id="bio"
+                                        name="bio"
+                                        value={userData.bio || "No disponible"}
+                                        disabled={!editMode}
+                                    />
+                                </div>
+                            </div>
+                            {editMode ? (
+                                <div className="field">
+                                    <button
+                                        className="button is-primary is-fullwidth"
+                                        type="submit"
+                                    >
+                                        Enviar
+                                    </button>
+                                </div>
+                            ) : null}
+                        </form>
                     </div>
                 </>
             ) : (
