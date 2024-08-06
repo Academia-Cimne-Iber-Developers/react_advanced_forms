@@ -31,6 +31,37 @@ function Login() {
                 })
                 .then((responseData) => {
                     login(responseData.token);
+                    if (responseData.token) {
+                        fetch(
+                            `${
+                                import.meta.env.VITE_API_BASE_URL
+                            }users/profiles/profile_data/`,
+                            {
+                                method: "GET",
+                                headers: {
+                                    Authorization: `Token ${responseData.token}`,
+                                },
+                            }
+                        )
+                            .then((profileResponse) => {
+                                if (!profileResponse.ok) {
+                                    throw new Error(
+                                        "Error al obtener id de usuario"
+                                    );
+                                }
+                                return profileResponse.json();
+                            })
+                            .then((profileData) =>
+                                login(responseData.token, profileData.user__id)
+                            )
+                            .catch((error) => {
+                                console.error(
+                                    "Error al obtener id de usuario",
+                                    error
+                                );
+                                setIsError(true);
+                            });
+                    }
                 })
                 .catch((error) => {
                     console.error("Error error al iniciar sesión", error);
