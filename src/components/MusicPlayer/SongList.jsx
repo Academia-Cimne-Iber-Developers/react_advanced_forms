@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import SongCard from "./SongCard";
+import { useAuth } from "../../contexts/AuthContext";
 
 function SongList() {
     const [page, setPage] = useState(1);
@@ -8,6 +9,8 @@ function SongList() {
     const [isError, setIsError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [filters, setFilters] = useState({});
+
+    const { user__id } = useAuth("state");
 
     const observerRef = useRef();
     const lastSongElementRef = useRef();
@@ -144,7 +147,7 @@ function SongList() {
                                     ref={lastSongElementRef}
                                     className="column is-two-thirds"
                                 >
-                                    <SongCard song={song} />
+                                    <SongCard song={song} user_ID={user__id} />
                                 </div>
                             );
                         } else {
@@ -153,7 +156,7 @@ function SongList() {
                                     key={song.id}
                                     className="column is-two-thirds"
                                 >
-                                    <SongCard song={song} />
+                                    <SongCard song={song} user_ID={user__id} />
                                 </div>
                             );
                         }
